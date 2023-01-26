@@ -1,5 +1,8 @@
 package com.example.studentManagement;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -8,19 +11,37 @@ import java.util.Map;
 @RestController
 public class StudentController {
 
-    Map<Integer,Student> db = new HashMap<>();
+    @Autowired
+    StudentService studentService;
 
-    // get information
     @GetMapping("/get_student")
-    public Student getStudent(@RequestParam("q") int admnNo){
-        return db.get(admnNo);
+    public ResponseEntity getStudent(@RequestParam("admnNo") int admnNo){
+        Student student = studentService.getStudent(admnNo);
+        return new ResponseEntity<>(student, HttpStatus.FOUND);
     }
-
     // adding the information
     @PostMapping("/add_student")
-    public String addStudent(@RequestBody Student student){
-        int admnNo = student.getAdmnNo();
-        db.put(admnNo,student);
-        return "Student added successfully";
+    public ResponseEntity addStudent(@RequestBody Student student){
+
+        String response = studentService.addStudent(student);
+        return new ResponseEntity<>(response,HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/delete_student/{id}")
+    public ResponseEntity deleteStudent(@PathVariable("id") int id){
+        String response = studentService.deleteStudent(id);
+        if(response.equals("Invalid id")){
+            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(response,HttpStatus.FOUND);
+    }
+    @PutMapping("/update_student")
+    public ResponseEntity updateStudent(@RequestParam("id") int id,@RequestParam("age") int age){
+        String response = studentService.updateStudent(id,age);
+        if(response==null){
+            return new ResponseEntity("Invalid request",HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity("Updated",HttpStatus.ACCEPTED);
     }
 }
